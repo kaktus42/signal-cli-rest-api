@@ -4,9 +4,11 @@ set -x
 set -e
 
 [ -z "${SIGNAL_CLI_CONFIG_DIR}" ] && echo "SIGNAL_CLI_CONFIG_DIR environmental variable needs to be set! Aborting!" && exit 1;
+[ -z "${SIGNAL_CLI_UID}" ] && echo "SIGNAL_CLI_UID environmental variable needs to be set! Aborting!" && exit 1;
+[ -z "${SIGNAL_CLI_GID}" ] && echo "SIGNAL_CLI_GID environmental variable needs to be set! Aborting!" && exit 1;
 
 # Check if we are already running as the target user and group
-if [ "$(id -u)" -eq "${SIGNAL_CLI_UID:-0}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID:-0}" ]; then
+if [ "$(id -u)" -eq "${SIGNAL_CLI_UID}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID}" ]; then
   echo "Already running as UID ${SIGNAL_CLI_UID} and GID ${SIGNAL_CLI_GID}. Skipping privileged operations."
 else
   echo "Adjusting user and group IDs to ${SIGNAL_CLI_UID}:${SIGNAL_CLI_GID}"
@@ -43,7 +45,7 @@ fi
 export HOST_IP=$(hostname -I | awk '{print $1}')
 
 # Start API as signal-api user
-if [ "$(id -u)" -eq "${SIGNAL_CLI_UID:-0}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID:-0}" ]; then
+if [ "$(id -u)" -eq "${SIGNAL_CLI_UID}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID}" ]; then
   # Already running as the target user, start directly
   exec signal-cli-rest-api -signal-cli-config="${SIGNAL_CLI_CONFIG_DIR}"
 else
