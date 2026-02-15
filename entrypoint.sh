@@ -10,13 +10,13 @@ if [ "$(id -u)" -eq "${SIGNAL_CLI_UID}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID}
   echo "Already running as UID ${SIGNAL_CLI_UID} and GID ${SIGNAL_CLI_GID}. Skipping privilege operations."
 else
   echo "Adjusting user and group IDs to ${SIGNAL_CLI_UID}:${SIGNAL_CLI_GID}"
-  usermod -u ${SIGNAL_CLI_UID} signal-api
-  groupmod -o -g ${SIGNAL_CLI_GID} signal-api
+  usermod -u "${SIGNAL_CLI_UID}" signal-api
+  groupmod -o -g "${SIGNAL_CLI_GID}" signal-api
 
   # Fix permissions to ensure backward compatibility if SIGNAL_CLI_CHOWN_ON_STARTUP is not set to "false"
   if [ "$SIGNAL_CLI_CHOWN_ON_STARTUP" != "false" ]; then
     echo "Changing ownership of ${SIGNAL_CLI_CONFIG_DIR} to ${SIGNAL_CLI_UID}:${SIGNAL_CLI_GID}"
-    chown ${SIGNAL_CLI_UID}:${SIGNAL_CLI_GID} -R ${SIGNAL_CLI_CONFIG_DIR}
+    chown "${SIGNAL_CLI_UID}":"${SIGNAL_CLI_GID}" -R "${SIGNAL_CLI_CONFIG_DIR}"
   else
     echo "Skipping chown on startup since SIGNAL_CLI_CHOWN_ON_STARTUP is set to 'false'"
   fi
@@ -45,10 +45,10 @@ export HOST_IP=$(hostname -I | awk '{print $1}')
 # Start API as signal-api user
 if [ "$(id -u)" -eq "${SIGNAL_CLI_UID}" ] && [ "$(id -g)" -eq "${SIGNAL_CLI_GID}" ]; then
   # Already running as the target user, start directly
-  exec signal-cli-rest-api -signal-cli-config=${SIGNAL_CLI_CONFIG_DIR}
+  exec signal-cli-rest-api -signal-cli-config="${SIGNAL_CLI_CONFIG_DIR}"
 else
   # Use setpriv to switch to target user
   cap_prefix="-cap_"
   caps="$cap_prefix$(seq -s ",$cap_prefix" 0 $(cat /proc/sys/kernel/cap_last_cap))"
-  exec setpriv --reuid=${SIGNAL_CLI_UID} --regid=${SIGNAL_CLI_GID} --init-groups --inh-caps=$caps signal-cli-rest-api -signal-cli-config=${SIGNAL_CLI_CONFIG_DIR}
+  exec setpriv --reuid="${SIGNAL_CLI_UID}" --regid="${SIGNAL_CLI_GID}" --init-groups --inh-caps="$caps" signal-cli-rest-api -signal-cli-config="${SIGNAL_CLI_CONFIG_DIR}"
 fi
